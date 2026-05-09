@@ -6,7 +6,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-// This is defined in the menuconfig
+// This is something you can change in Blinking Configuration in idf.py menuconfig
 #define BLINK_GPIO CONFIG_BLINK_GPIO
 #define BLINK_DURATION CONFIG_BLINK_DURATION
 
