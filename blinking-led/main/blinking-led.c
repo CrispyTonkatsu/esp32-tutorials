@@ -1,7 +1,6 @@
 #include <stdint.h>
 
 #include "driver/gpio.h"
-#include "soc/gpio_num.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -17,7 +16,7 @@ void app_main(void) {
   uint32_t state = 1;
 
   for (;;) {
-    gpio_set_level(GPIO_NUM_2, state);
+    gpio_set_level(BLINK_GPIO, state);
 
     state = !state;
 
