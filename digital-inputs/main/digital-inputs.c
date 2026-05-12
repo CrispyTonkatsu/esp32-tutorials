@@ -73,7 +73,7 @@ void app_main(void) {
 
   size_t command_len = 0;
 
-  for (;; vTaskDelay(100 / portTICK_PERIOD_MS)) {
+  for (;;) {
 
     // Button logic
     if (gpio_get_level(CONFIG_INPUT_GPIO) == 0) {
