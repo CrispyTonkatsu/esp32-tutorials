@@ -7,6 +7,10 @@ menu "Passive Buzzer Config"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
         default 8
 
+    config ACTIVE_BUZZER
+        bool "Whether this is an active or passive buzzer"
+        default false
+
     config BUZZ_DURATION
         int "The duration of the buzzing"
         range 10 3600000

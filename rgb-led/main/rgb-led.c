@@ -83,7 +83,6 @@ rgb hsv_to_rgb(hsv color) {
 }
 
 void initialize_pwm(int gpio_pin, int timer, int channel) {
-
   const ledc_timer_config_t timer_config = {
       .speed_mode = LEDC_MODE,
       .duty_resolution = LEDC_TIMER_8_BIT,
