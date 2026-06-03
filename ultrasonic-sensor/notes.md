@@ -1,0 +1,2 @@
+# Reflection
+For this lab, I tried to start using the freeRTOS task system to start using the event-driven architecture I'm familiar with from game engines. In this case this became rather simple, the harder part was getting used to the notification system and fitting the real time constraints of finding lower bounds for my task and timeout so that there would be less delay when processing the information. Overall this was a fun task but I can't wait to start messing with multiple peripherals at once and see how the RTOS becomes useful.
