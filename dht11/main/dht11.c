@@ -33,6 +33,8 @@ bool process_ack_signal() {
 
   // TODO: Left off here: Implementing the check for the 80 microsecond low
 
+
+
   return true;
 }
 
@@ -59,6 +61,10 @@ void app_main(void) {
       return;
     }
 
+    // Reading the data
+
+    // TODO: Remove this loop (this is just because we are doing one reading per
+    // program run now)
     for (;;) {
     }
   }
