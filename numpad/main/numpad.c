@@ -1,7 +1,6 @@
 #include "esp_err.h"
 #include "esp_intr_alloc.h"
 #include "esp_log.h"
-#include "esp_rom_sys.h"
 
 #include "freertos/idf_additions.h"
 #include "freertos/projdefs.h"
@@ -14,8 +13,6 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include <stddef.h>
-#include <stdint.h>
 
 static const char *tag = "NUMPAD";
 static const char characters[4][4] = {
