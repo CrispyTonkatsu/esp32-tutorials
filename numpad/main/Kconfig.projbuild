@@ -1,0 +1,45 @@
+menu "Keypad config"
+
+    orsource "$IDF_PATH/examples/common_components/env_caps/$IDF_TARGET/Kconfig.env_caps"
+
+    config GPIO_ROW_0
+        int "GPIO for row 0"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 27
+
+    config GPIO_ROW_1
+        int "GPIO for row 1"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 27
+
+    config GPIO_ROW_2
+        int "GPIO for row 2"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 27
+
+    config GPIO_ROW_3
+        int "GPIO for row 3"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 27
+
+    config GPIO_COLUMN_0
+        int "GPIO for column 0"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 27
+
+    config GPIO_COLUMN_1
+        int "GPIO for column 1"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 27
+
+    config GPIO_COLUMN_2
+        int "GPIO for column 2"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 27
+
+    config GPIO_COLUMN_3
+        int "GPIO for column 3"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 27
+
+endmenu

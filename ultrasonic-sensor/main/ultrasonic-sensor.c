@@ -67,7 +67,7 @@ void send_signal_task(void *arg) {
       ESP_LOGI(tag, "Timed out, restarting detection cycle");
     }
 
-		vTaskDelay(pdMS_TO_TICKS(TASK_DELAY_MS));
+    vTaskDelay(pdMS_TO_TICKS(TASK_DELAY_MS));
   }
 }
 

@@ -13,10 +13,10 @@ menu "Ultrasonic Sensor Config"
 
     config TIMEOUT_MS
         int "The timeout for the notification wait"
-				default 23
+	default 23
 
     config TASK_DELAY_MS
         int "The delay on every loop of the task"
-				default 100
+	default 100
 
 endmenu
