@@ -2,18 +2,16 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 
-#include "freertos/projdefs.h"
 #include "rom/ets_sys.h"
 
 #include "driver/gpio.h"
-#include "hal/gpio_types.h"
 #include "soc/gpio_num.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define SENSOR_PIN GPIO_NUM_27 // CONFIG_SENSOR_PIN
-#define POLL_RATE_MS 1000      // CONFIG_POLL_RATE_MS
+#define SENSOR_PIN CONFIG_SENSOR_GPIO
+#define POLL_RATE_MS CONFIG_POLL_RATE_MS
 
 const static char *tag = "DHT11";
 
@@ -54,17 +52,17 @@ bool start_sensor() {
 
   ESP_ERROR_CHECK(gpio_set_direction(SENSOR_PIN, GPIO_MODE_INPUT));
 
-  if (wait_for_state(SENSOR_PIN, 0, 40).timed_out) {
+  if (wait_for_state(SENSOR_PIN, 0, 100).timed_out) {
     ESP_LOGE(tag, "Timeout on wait for device");
     return false;
   }
 
-  if (wait_for_state(SENSOR_PIN, 1, 80).timed_out) {
+  if (wait_for_state(SENSOR_PIN, 1, 100).timed_out) {
     ESP_LOGE(tag, "Timeout on device low");
     return false;
   }
 
-  if (wait_for_state(SENSOR_PIN, 0, 80).timed_out) {
+  if (wait_for_state(SENSOR_PIN, 0, 100).timed_out) {
     ESP_LOGE(tag, "Timeout on device high");
     return false;
   }
@@ -72,7 +70,32 @@ bool start_sensor() {
   return true;
 }
 
-void app_main(void) {
+uint8_t read_byte() {
+  uint8_t output = 0;
+
+  for (size_t i = 0; i < 8; i++) {
+    if (wait_for_state(SENSOR_PIN, 1, 60).timed_out) {
+      ESP_LOGE(tag, "Bit header timed out");
+      return 0;
+    }
+
+    const WaitData signal_data = wait_for_state(SENSOR_PIN, 0, 80);
+    if (signal_data.timed_out) {
+      ESP_LOGE(tag, "Bit wait for low timed out");
+      return 0;
+    }
+
+    output <<= 1;
+
+    if (signal_data.duration > 40) {
+      output |= 1;
+    }
+  }
+
+  return output;
+}
+
+void app_main() {
   const gpio_config_t pin_config = {
       .pin_bit_mask = (1ull << SENSOR_PIN),
       .pull_up_en = GPIO_PULLUP_ENABLE,
@@ -86,10 +109,31 @@ void app_main(void) {
     ESP_ERROR_CHECK(gpio_set_direction(SENSOR_PIN, GPIO_MODE_OUTPUT));
 
     if (!start_sensor()) {
-      return;
+      vTaskDelay(pdMS_TO_TICKS(POLL_RATE_MS));
+      continue;
     }
 
-    // TODO: Reading the data
+    const uint8_t humidity_int = read_byte();
+    const uint8_t humidity_dec = read_byte();
+    const uint8_t temperature_int = read_byte();
+    const uint8_t temperature_dec = read_byte();
+    const uint8_t checksum = read_byte();
+
+    if (((humidity_int + humidity_dec + temperature_int + temperature_dec) &
+         0xFF) == checksum) {
+
+      const float humidity_value =
+          (float)humidity_int + (float)humidity_dec / 10.f;
+
+      const float temperature_value =
+          (float)temperature_int + (float)temperature_dec / 10.f;
+
+      ESP_LOGI(tag, "Humidity: %.1f, Temperature: %.1f C", humidity_value,
+               temperature_value);
+
+    } else {
+      ESP_LOGE(tag, "Checksum mismatch, trying again");
+    }
 
     vTaskDelay(pdMS_TO_TICKS(POLL_RATE_MS));
   }
