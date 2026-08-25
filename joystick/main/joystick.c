@@ -1,7 +1,6 @@
 #include "esp_adc/adc_continuous.h"
 #include "esp_err.h"
 #include "esp_log.h"
-#include "soc/soc_caps.h"
 
 #include "freertos/idf_additions.h"
 #include "freertos/projdefs.h"
@@ -18,38 +17,47 @@ bool adc_conversion_done_callback(adc_continuous_handle_t handle,
                                   void *user_data) {
   BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
   vTaskNotifyGiveFromISR(task_print_values_handle, &pxHigherPriorityTaskWoken);
-  return pxHigherPriorityTaskWoken;
+
+  return (pxHigherPriorityTaskWoken == pdTRUE);
 }
 
 void print_values_task(void *arg) {
-  uint8_t buffer[128];
+  const uint32_t parsed_data_count = 32;
+  adc_continuous_data_t parsed_data[parsed_data_count];
 
   while (true) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-    uint32_t read_length;
-    ESP_ERROR_CHECK(adc_continuous_read(adc_handle, buffer, sizeof(buffer),
-                                        &read_length, 0));
+    ESP_LOGI(tag, "Starting loop");
 
-    adc_continuous_data_t parsed_data[read_length / SOC_ADC_DIGI_RESULT_BYTES];
-    uint32_t parsed_samples_count;
-    ESP_ERROR_CHECK(adc_continuous_parse_data(
-        adc_handle, buffer, read_length, parsed_data, &parsed_samples_count));
+    uint32_t read_sample_count;
+    const esp_err_t read_status = adc_continuous_read_parse(
+        adc_handle, parsed_data, parsed_data_count, &read_sample_count, 0);
 
-    for (uint32_t i = 0; i < parsed_samples_count; i++) {
-      if (parsed_data[i].valid) {
-        ESP_LOGI(tag, "ADC%d, Channel: %d, Value: %" PRIu32,
-                 parsed_data[i].unit + 1, parsed_data[i].channel,
-                 parsed_data[i].raw_data);
+    if (read_status == ESP_OK) {
+      for (int i = 0; i < read_sample_count; i++) {
+        if (parsed_data[i].valid) {
+          ESP_LOGI(tag, "ADC%d, Channel: %d, Value: %" PRIu32,
+                   parsed_data[i].unit + 1, parsed_data[i].channel,
+                   parsed_data[i].raw_data);
+        }
       }
+    } else if (read_status == ESP_ERR_TIMEOUT) {
+      ESP_LOGI(tag, "Breaking Loop");
+      break;
+    } else {
+      ESP_LOGE(tag, "Data parsing failed: %s", esp_err_to_name(read_status));
     }
+
+    vTaskDelay(pdMS_TO_TICKS(100));
   }
 }
 
 void app_main(void) {
   adc_handle = configure_adc(adc_conversion_done_callback);
-  adc_continuous_start(adc_handle);
 
   xTaskCreate(print_values_task, "print_values", 4096, NULL, 5,
               &task_print_values_handle);
+
+  ESP_ERROR_CHECK(adc_continuous_start(adc_handle));
 }

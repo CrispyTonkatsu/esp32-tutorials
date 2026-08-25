@@ -6,8 +6,8 @@ adc_continuous_handle_t
 configure_adc(adc_continuous_callback_t conversion_done_callback) {
   adc_continuous_handle_t driver_handle = NULL;
   adc_continuous_handle_cfg_t adc_driver_config = {
-      .max_store_buf_size = 2,
-      .conv_frame_size = 4,
+      .max_store_buf_size = 1024,
+      .conv_frame_size = 256,
   };
 
   ESP_ERROR_CHECK(
@@ -24,7 +24,7 @@ configure_adc(adc_continuous_callback_t conversion_done_callback) {
   adc_digi_pattern_config_t patterns[2] = {0};
   adc_digi_pattern_config_t config = {
       .atten = ADC_ATTEN_DB_12,
-      .channel = ADC_CHANNEL_8,
+      .channel = ADC_CHANNEL_6,
       .unit = ADC_UNIT_1,
       .bit_width = ADC_BITWIDTH_12,
   };
