@@ -5,7 +5,6 @@
 #include "driver/rmt_types.h"
 #include "hal/rmt_types.h"
 
-#include "freertos/FreeRTOS.h"
 #include "freertos/idf_additions.h"
 #include "freertos/projdefs.h"
 #include "portmacro.h"
@@ -56,7 +55,6 @@ void decode_ir(void *args) {
 
     rmt_rx_done_event_data_t edata;
     xQueueReceive(rx_queue_handle, &edata, portMAX_DELAY);
-    input_code = 0;
 
     const rmt_symbol_word_t *leader_code = &edata.received_symbols[0];
     if (leader_code->duration0 < 8000 || leader_code->duration0 > 10000) {
@@ -76,14 +74,13 @@ void decode_ir(void *args) {
       continue;
     }
 
-    ESP_LOGI(tag, "NEC Frame Start");
+    input_code = 0;
 
     bool failed = false;
 
-    for (size_t i = 1; i < edata.num_symbols; i++) {
+    // Reading the signal
+    for (size_t i = 1; i <= 32; i++) {
       const rmt_symbol_word_t *word = &edata.received_symbols[i];
-
-      ESP_LOGI(tag, "Values are: 0:%i, 1:%i", word->duration0, word->duration1);
 
       if (word->duration0 < 400 || word->duration0 > 700) {
         ESP_LOGW(tag, "The bit header is of invalid duration: %i",
@@ -106,7 +103,6 @@ void decode_ir(void *args) {
     }
 
     enqueue_decoded_value(input_code);
-    ESP_LOGI(tag, "NEC Frame End");
   }
 }
 
@@ -115,12 +111,90 @@ void print_values(void *args) {
     uint32_t value;
     xQueueReceive(decoded_values_queue_handle, &value, portMAX_DELAY);
 
-    ESP_LOGI(tag, "Input received: %i", value);
+    ESP_LOGI(tag, "Input received: 0x%x", value);
+
+    // Translating it using the table from the tutorial
+
+    const char *display_name;
+
+    switch (value) {
+    case 0xFFA25D:
+      display_name = ("POWER");
+      break;
+    case 0xFFE21D:
+      display_name = ("FUNC/STOP");
+      break;
+    case 0xFF629D:
+      display_name = ("VOL+");
+      break;
+    case 0xFF22DD:
+      display_name = ("FAST BACK");
+      break;
+    case 0xFF02FD:
+      display_name = ("PAUSE");
+      break;
+    case 0xFFC23D:
+      display_name = ("FAST FORWARD");
+      break;
+    case 0xFFE01F:
+      display_name = ("DOWN");
+      break;
+    case 0xFFA857:
+      display_name = ("VOL-");
+      break;
+    case 0xFF906F:
+      display_name = ("UP");
+      break;
+    case 0xFF9867:
+      display_name = ("EQ");
+      break;
+    case 0xFFB04F:
+      display_name = ("ST/REPT");
+      break;
+    case 0xFF6897:
+      display_name = ("0");
+      break;
+    case 0xFF30CF:
+      display_name = ("1");
+      break;
+    case 0xFF18E7:
+      display_name = ("2");
+      break;
+    case 0xFF7A85:
+      display_name = ("3");
+      break;
+    case 0xFF10EF:
+      display_name = ("4");
+      break;
+    case 0xFF38C7:
+      display_name = ("5");
+      break;
+    case 0xFF5AA5:
+      display_name = ("6");
+      break;
+    case 0xFF42BD:
+      display_name = ("7");
+      break;
+    case 0xFF4AB5:
+      display_name = ("8");
+      break;
+    case 0xFF52AD:
+      display_name = ("9");
+      break;
+    case 0xFFFFFFFF:
+      display_name = ("REPEAT");
+      break;
+    default:
+      display_name = ("OTHER BUTTON");
+      break;
+    }
+
+    ESP_LOGI(tag, "Translated value: %s", display_name);
   }
 }
 
 void app_main(void) {
-  rx_queue_handle = xQueueCreate(8, sizeof(void *));
+  rx_queue_handle = xQueueCreate(8, sizeof(rmt_rx_done_event_data_t));
   decoded_values_queue_handle = xQueueCreate(8, sizeof(uint32_t));
 
   rmt_rx_channel_config_t rx_channel_config = {
