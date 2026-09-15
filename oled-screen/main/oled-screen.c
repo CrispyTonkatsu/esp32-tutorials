@@ -73,7 +73,20 @@ void app_main(void) {
   ESP_ERROR_CHECK(
       i2c_master_transmit(screen_handle, all_on_cmd, sizeof(all_on_cmd), 1000));
 
+  bool toggle = true;
   while (true) {
-    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    uint8_t cmd[2] = {0x00, 0};
+    if (toggle) {
+      cmd[1] = 0xAF;
+    } else {
+      cmd[1] = 0xAE;
+    }
+
+    ESP_ERROR_CHECK(i2c_master_transmit(screen_handle, cmd, sizeof(cmd), 1000));
+
+    toggle = !toggle;
+
+    vTaskDelay(pdMS_TO_TICKS(10000));
   }
 }
