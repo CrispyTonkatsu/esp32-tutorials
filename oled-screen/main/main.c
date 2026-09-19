@@ -3,6 +3,8 @@
 
 #include "screen.h"
 
+// NOTE: If I feel like coming back to this I could add basic text rendering
+
 void app_main() {
   const i2c_master_dev_handle_t *screen_handle = initialize_device();
   if (screen_handle == NULL) {
