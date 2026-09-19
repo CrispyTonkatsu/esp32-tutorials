@@ -11,17 +11,25 @@ void app_main() {
 
   clear_buffer();
 
-  for (size_t i = 0; i < OLED_WIDTH; i++) {
-    for (size_t j = 0; j < OLED_HEIGHT; j++) {
-      if (i % 8 == 0 && j % 8 == 0) {
-        paint_pixel(i, j, true);
-      }
-    }
-  }
+  size_t dissipation_step = 1;
+  const size_t dissipation_max = 32;
 
   while (true) {
+
+    for (size_t i = 0; i < OLED_WIDTH; i++) {
+      for (size_t j = 0; j < OLED_HEIGHT; j++) {
+        if (i % dissipation_step == 0 && j % dissipation_step == 0) {
+          paint_pixel(i, j, true);
+        }
+      }
+    }
+
     display_buffer();
 
-    vTaskDelay(pdMS_TO_TICKS(100));
+    dissipation_step *= 2;
+    dissipation_step =
+        dissipation_step > dissipation_max ? 1 : dissipation_step;
+
+    vTaskDelay(pdMS_TO_TICKS(500));
   }
 }
