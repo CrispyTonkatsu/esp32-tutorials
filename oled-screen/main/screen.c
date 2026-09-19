@@ -126,3 +126,15 @@ void display_buffer() {
 }
 
 void clear_buffer() { memset(buffer, 0x00, sizeof(buffer)); }
+
+void paint_pixel(const size_t x, const size_t y, const bool value) {
+  assert("The x variable can't be larger than the oled's width" &&
+         x < OLED_WIDTH);
+  assert("The y variable can't be larger than the oled's height" &&
+         y < OLED_HEIGHT);
+
+  const size_t page = y / 8;
+  const size_t pixel_offset = y % 8;
+
+  buffer[x + (page * OLED_WIDTH)] ^= (value << pixel_offset);
+}
